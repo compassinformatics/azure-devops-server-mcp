@@ -31,7 +31,7 @@ npx ado-server-mcp
 
 Set these environment variables before running:
 
-- ADO_SERVER_URL: Azure DevOps Server collection URL, for example https://tfs.compass.ie/tfs/DefaultCollection/
+- ADO_SERVER_URL: Azure DevOps Server collection URL, for example https://tfs.example.com/tfs/DefaultCollection/
 - ADO_PAT: PAT with required permissions for the operations you want (or ADO_MCP_AUTH_TOKEN / PERSONAL_ACCESS_TOKEN)
 - ADO_API_VERSION (optional): defaults to 7.0
 - ADO_DOMAINS (optional): comma-separated domains to load, defaults to all
@@ -39,7 +39,7 @@ Set these environment variables before running:
 Example:
 
 ```
-ADO_SERVER_URL=https://tfs.compass.ie/tfs/DefaultCollection/
+ADO_SERVER_URL=https://tfs.example.com/tfs/DefaultCollection/
 ADO_PAT=<your_pat>
 ADO_DOMAINS=core,work,work-items,repositories,pipelines,wiki,search,test-plans,advanced-security
 ```
