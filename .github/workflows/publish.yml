@@ -25,5 +25,12 @@ jobs:
       - name: Validate source files
         run: node --check src/index.mjs
 
+      - name: Show Trusted Publishing context
+        run: |
+          echo "repository=${GITHUB_REPOSITORY}"
+          echo "workflow_ref=${GITHUB_WORKFLOW_REF}"
+          echo "ref=${GITHUB_REF}"
+          echo "event=${GITHUB_EVENT_NAME}"
+
       - name: Publish to npm
         run: npm publish --provenance --access public
