@@ -1,6 +1,6 @@
 {
   "name": "@compassinformatics/ado-server-mcp",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "type": "module",
   "description": "MCP server for Azure DevOps Server on-prem — full upstream toolset (core, work, work-items, repositories, pipelines, wiki, search, test-plans, advanced-security) plus TFVC changeset tools",
   "main": "src/index.mjs",
