@@ -1,10 +1,20 @@
 {
   "name": "ado-server-mcp",
   "version": "0.3.0",
-  "private": true,
   "type": "module",
   "description": "MCP server for Azure DevOps Server on-prem — full upstream toolset (core, work, work-items, repositories, pipelines, wiki, search, test-plans, advanced-security) plus TFVC changeset tools",
   "main": "src/index.mjs",
+  "bin": {
+    "ado-server-mcp": "src/index.mjs"
+  },
+  "files": [
+    "src/",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/compassinformatics/azure-devops-server-mcp.git"
+  },
   "scripts": {
     "start": "node src/index.mjs"
   },

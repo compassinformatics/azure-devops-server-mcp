@@ -10,6 +10,18 @@ Additional local tools for TFVC:
 - `list_changesets` — list TFVC changesets with optional path/author/range filters
 - `get_changeset` — get full changeset details including work items and changed items
 
+## Installation
+
+```
+npm install -g ado-server-mcp
+```
+
+Or run directly without installing:
+
+```
+npx ado-server-mcp
+```
+
 ## Requirements
 
 - Node.js 20+
