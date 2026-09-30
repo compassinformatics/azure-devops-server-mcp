@@ -3,6 +3,19 @@
 export const apiVersion = "7.2-preview.1";
 export const batchApiVersion = "5.0";
 export const markdownCommentsApiVersion = "7.2-preview.4";
+/**
+ * Returns the user-supplied CLI arguments.
+ *
+ * The server is always started script-style — `[runtime, scriptPath, ...args]` — on Node
+ * and on Electron hosts alike, so the first two entries are always dropped.
+ *
+ * Do not replace this with yargs' `hideBin`: it drops a single entry whenever
+ * `process.versions.electron` is set and `process.defaultApp` is not, so on an Electron
+ * host the script path survives and is parsed as the organization name.
+ */
+export function getCliArgs(argv = process.argv) {
+    return argv.slice(2);
+}
 export function createEnumMapping(enumObject) {
     const mapping = {};
     for (const [key, value] of Object.entries(enumObject)) {
@@ -66,6 +79,60 @@ export function encodeFormattedValue(value, format) {
         return value;
     const result = value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
     return result;
+}
+/**
+ * Detects whether a string returned from an ADO API stream is actually an error
+ * response serialized as JSON (e.g. a 404 GitItemNotFoundException or
+ * WikiPageNotFoundException) rather than real content.
+ *
+ * The ADO Node API client swallows non-2xx HTTP responses and delivers the
+ * error body as a stream, so callers must check explicitly after reading.
+ *
+ * @returns The human-readable error message extracted from the JSON, or null if
+ *          the content is not an ADO error response.
+ */
+export function extractAdoStreamError(content) {
+    try {
+        const json = JSON.parse(content.trim());
+        if (json && typeof json.typeName === "string" && typeof json.message === "string") {
+            return json.message;
+        }
+    }
+    catch {
+        // Not JSON — not an ADO error response.
+    }
+    return null;
+}
+/**
+ * Extracts the Azure DevOps organization identifier from a URL.
+ *
+ * Only recognized Azure DevOps hosts are accepted; any other host returns null
+ * so that callers can treat unrecognized URLs as a boundary violation.
+ *
+ * Supports both modern and legacy organization URL forms:
+ *  - https://dev.azure.com/{org}/...            -> org is the first path segment
+ *  - https://{org}.visualstudio.com/...         -> org is the host subdomain
+ *
+ * @param url Any Azure DevOps URL (e.g. a wiki page link or a connection serverUrl).
+ * @returns The lowercased organization name, or null if it cannot be determined.
+ */
+export function getOrgFromUrl(url) {
+    try {
+        const u = new URL(url);
+        const host = u.hostname.toLowerCase();
+        if (host === "visualstudio.com" || host.endsWith(".visualstudio.com")) {
+            const subdomain = host.split(".")[0];
+            return subdomain && subdomain !== "visualstudio" ? subdomain : null;
+        }
+        if (host === "dev.azure.com" || host.endsWith(".dev.azure.com")) {
+            const firstSegment = u.pathname.split("/").filter(Boolean)[0];
+            return firstSegment ? firstSegment.toLowerCase() : null;
+        }
+        return null;
+    }
+    catch {
+        return null;
+    }
 }
 /**
  * Convert a Node.js ReadableStream to a string.

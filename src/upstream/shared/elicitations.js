@@ -1,6 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 export async function elicitProject(server, connection, message) {
+    // Check for default project from environment variable
+    const defaultProject = process.env.ado_mcp_project;
+    if (defaultProject) {
+        return { resolved: defaultProject };
+    }
     const coreApi = await connection.getCoreApi();
     const projects = await coreApi.getProjects("wellFormed", 100, 0, undefined, false);
     if (!projects || projects.length === 0) {
@@ -31,6 +36,11 @@ export async function elicitProject(server, connection, message) {
     return { resolved: String(result.content.project) };
 }
 export async function elicitTeam(server, connection, project, message) {
+    // Check for default team from environment variable
+    const defaultTeam = process.env.ado_mcp_team;
+    if (defaultTeam) {
+        return { resolved: defaultTeam };
+    }
     const coreApi = await connection.getCoreApi();
     const teams = await coreApi.getTeams(project, undefined, undefined, undefined, false);
     if (!teams || teams.length === 0) {

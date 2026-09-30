@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
+import { wrapExternalToolResponse } from "./shared/content-safety.js";
 import { Domain } from "./shared/domains.js";
 import { configureAdvSecTools } from "./tools/advanced-security.js";
 import { configureMcpAppsTools } from "./tools/mcp-apps.js";
@@ -14,11 +15,13 @@ import { configureWorkItemTools } from "./tools/work-items.js";
 function configureAllTools(server, tokenProvider, connectionProvider, userAgentProvider, enabledDomains) {
     const configureIfDomainEnabled = (domain, configureFn) => {
         if (enabledDomains.has(domain)) {
-            configureFn();
+            configureToolsWithContentSafety(server, domain, configureFn);
         }
     };
     configureIfDomainEnabled(Domain.CORE, () => configureCoreTools(server, tokenProvider, connectionProvider, userAgentProvider));
-    configureIfDomainEnabled(Domain.MCP_APPS, () => configureMcpAppsTools(server));
+    // This is a local health-check response and contains no Azure DevOps content.
+    if (enabledDomains.has(Domain.MCP_APPS))
+        configureMcpAppsTools(server);
     configureIfDomainEnabled(Domain.WORK, () => configureWorkTools(server, tokenProvider, connectionProvider));
     configureIfDomainEnabled(Domain.PIPELINES, () => configurePipelineTools(server, tokenProvider, connectionProvider, userAgentProvider));
     configureIfDomainEnabled(Domain.REPOSITORIES, () => configureRepoTools(server, tokenProvider, connectionProvider, userAgentProvider));
@@ -27,5 +30,35 @@ function configureAllTools(server, tokenProvider, connectionProvider, userAgentP
     configureIfDomainEnabled(Domain.TEST_PLANS, () => configureTestPlanTools(server, tokenProvider, connectionProvider, userAgentProvider));
     configureIfDomainEnabled(Domain.SEARCH, () => configureSearchTools(server, tokenProvider, connectionProvider, userAgentProvider));
     configureIfDomainEnabled(Domain.ADVANCED_SECURITY, () => configureAdvSecTools(server, tokenProvider, connectionProvider));
+}
+/**
+ * Centralizes the untrusted-content boundary for tool responses. Tool registration
+ * is synchronous, so the original method is restored before this function returns.
+ */
+function configureToolsWithContentSafety(server, domain, configureFn) {
+    const originalTool = server.tool;
+    const originalRegisterTool = server.registerTool;
+    const wrapRegistrationMethod = (registrationMethod) => new Proxy(registrationMethod, {
+        apply(target, thisArg, argumentsList) {
+            const callbackIndex = argumentsList.length - 1;
+            const callback = argumentsList[callbackIndex];
+            if (typeof callback === "function") {
+                argumentsList[callbackIndex] = async (...callbackArgs) => {
+                    const response = (await Reflect.apply(callback, undefined, callbackArgs));
+                    return wrapExternalToolResponse(response, `Azure DevOps ${domain}`);
+                };
+            }
+            return Reflect.apply(target, thisArg, argumentsList);
+        },
+    });
+    server.tool = wrapRegistrationMethod(originalTool);
+    server.registerTool = wrapRegistrationMethod(originalRegisterTool);
+    try {
+        configureFn();
+    }
+    finally {
+        server.tool = originalTool;
+        server.registerTool = originalRegisterTool;
+    }
 }
 export { configureAllTools };

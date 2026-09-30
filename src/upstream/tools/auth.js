@@ -56,7 +56,7 @@ function normalizeCollectionUrl(raw) {
 /**
  * Gets the user ID from email or unique name using Azure DevOps Identity API
  */
-async function getUserIdFromEmail(userEmail, tokenProvider, connectionProvider, userAgentProvider) {
+async function getUserIdentityFromEmail(userEmail, tokenProvider, connectionProvider, userAgentProvider) {
   const identities = await searchIdentities(
     userEmail,
     tokenProvider,
@@ -70,7 +70,19 @@ async function getUserIdFromEmail(userEmail, tokenProvider, connectionProvider, 
   if (!firstIdentity.id) {
     throw new Error(`No ID found for user with email/unique name: ${userEmail}`);
   }
-  return firstIdentity.id;
+  return {
+    id: firstIdentity.id,
+    displayName: firstIdentity.providerDisplayName ?? userEmail,
+  };
 }
-export { getCurrentUserDetails, getUserIdFromEmail, searchIdentities };
+async function getUserIdFromEmail(userEmail, tokenProvider, connectionProvider, userAgentProvider) {
+  const identity = await getUserIdentityFromEmail(
+    userEmail,
+    tokenProvider,
+    connectionProvider,
+    userAgentProvider,
+  );
+  return identity.id;
+}
+export { getCurrentUserDetails, getUserIdFromEmail, getUserIdentityFromEmail, searchIdentities };
 

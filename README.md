@@ -53,14 +53,14 @@ ADO_DOMAINS=core,work,work-items,repositories,pipelines,wiki,search,test-plans,a
 
 ## Example prompts
 
-- List my open work items for project LAWPRO
-- Get work item 47091
+- List my open work items for project TEST
+- Get work item 11223
 - Search for code containing "ApplicationService"
 - List recent changesets
-- List changesets for item path $/LAWPRO/Main
+- List changesets for item path $/TEST/Main
 - List changesets by author pavel
 - Get changeset 12345
-- List repositories in project LAWPRO
+- List repositories in project TEST
 - List recent pipeline runs
 
 ## Notes

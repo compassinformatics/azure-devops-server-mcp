@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { apiVersion } from '../utils.js';
 import { VersionControlRecursionType } from 'azure-devops-node-api/interfaces/GitInterfaces.js';
+import { createExternalContentResponse } from '../shared/content-safety.js';
 const SEARCH_TOOLS = {
   search_code: 'search_code',
   search_wiki: 'search_wiki',
@@ -62,9 +63,7 @@ function configureSearchTools(server, tokenProvider, connectionProvider, userAge
       const resultJson = JSON.parse(resultText);
       const gitApi = await connection.getGitApi();
       const combinedResults = await fetchCombinedResults(resultJson.results ?? [], gitApi);
-      return {
-        content: [{ type: 'text', text: resultText + JSON.stringify(combinedResults) }],
-      };
+      return createExternalContentResponse(resultText + JSON.stringify(combinedResults), 'code search results');
     },
   );
   server.tool(
@@ -110,9 +109,7 @@ function configureSearchTools(server, tokenProvider, connectionProvider, userAge
         );
       }
       const result = await response.text();
-      return {
-        content: [{ type: 'text', text: result }],
-      };
+      return createExternalContentResponse(result, 'wiki search results');
     },
   );
   server.tool(
@@ -174,9 +171,7 @@ function configureSearchTools(server, tokenProvider, connectionProvider, userAge
         );
       }
       const result = await response.text();
-      return {
-        content: [{ type: 'text', text: result }],
-      };
+      return createExternalContentResponse(result, 'work item search results');
     },
   );
 }
